@@ -105,27 +105,35 @@ export const majorApi = {
 
 // 新闻管理接口
 export const newsApi = {
-  list: (params) => request({
-    url: '/news/list',
-    method: 'get',
-    params
-  }),
-  create: (data) => request({
-    url: '/news',
+  list: (data) => request({
+    url: '/newsvl/news/list',
     method: 'post',
     data
   }),
-  update: (id, data) => request({
-    url: `/news/${id}`,
-    method: 'put',
+  create: (data) => request({
+    url: '/newsvl/news',
+    method: 'post',
     data
   }),
-  delete: (id) => request({
-    url: `/news/${id}`,
-    method: 'delete'
+  update: (data) => request({
+    url: `/newsvl/news/${id}`,
+    method: 'post',
+    data
   }),
-  detail: (id) => request({
-    url: `/news/${id}`,
-    method: 'get'
+  delete: (data) => request({
+    url: `/newsvl/news/${id}`,
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
+  }),
+  detail: (data) => request({
+    url: `/newsvl/news/${id}`,
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
   })
 }
