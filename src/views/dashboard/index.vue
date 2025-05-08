@@ -126,11 +126,11 @@ const currentTime = ref('')
 
 // 最新动态
 const latestNews = ref([
-  { id: 1, title: '系统上线公告', time: '2024-01-20 10:00' },
-  { id: 2, title: '新增院校管理功能', time: '2024-01-19 15:30' },
-  { id: 3, title: '优化文件上传体验', time: '2024-01-18 14:20' },
-  { id: 4, title: '新增新闻管理模块', time: '2024-01-17 09:45' },
-  { id: 5, title: '系统性能优化完成', time: '2024-01-16 16:30' }
+  { id: 1, title: '系统上线公告', time: '2025-04-20 10:00' },
+  { id: 2, title: '新增院校管理功能', time: '2025-04-19 15:30' },
+  { id: 3, title: '优化文件上传体验', time: '2025-04-18 14:20' },
+  { id: 4, title: '新增新闻管理模块', time: '2025-04-17 09:45' },
+  { id: 5, title: '系统性能优化完成', time: '2025-04-16 16:30' }
 ])
 
 // 更新时间
@@ -142,10 +142,10 @@ const updateTime = () => {
 const getStats = () => {
   // 模拟数据，实际项目中应该从API获取
   stats.value = {
-    newsCount: 156,
+    newsCount: 56,
     schoolCount: 85,
-    fileCount: 324,
-    todayUpload: 12
+    fileCount: 34,
+    todayUpload: 2
   }
 }
 

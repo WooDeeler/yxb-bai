@@ -23,20 +23,18 @@ const store = createStore({
   },
   actions: {
     // 登录
-    login({ commit }, userInfo) {
-      return new Promise((resolve, reject) => {
-        // 这里应该调用登录API
-        // 模拟登录成功
-        const token = 'mock-token'
-        const user = {
-          username: userInfo.username,
-          avatar: 'https://avatars.githubusercontent.com/u/1?v=4'
-        }
-        commit('SET_TOKEN', token)
-        commit('SET_USER_INFO', user)
-        resolve()
-      })
-    },
+    // login({ commit }, userInfo) {
+    //   return new Promise((resolve, reject) => {
+    //     const token = 'mock-token'
+    //     const user = {
+    //       username: userInfo.username,
+    //       avatar: 'https://avatars.githubusercontent.com/u/1?v=4'
+    //     }
+    //     commit('SET_TOKEN', token)
+    //     commit('SET_USER_INFO', user)
+    //     resolve()
+    //   })
+    // },
     // 登出
     logout({ commit }) {
       commit('CLEAR_USER')

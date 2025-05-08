@@ -5,8 +5,20 @@
         <el-icon><Upload /></el-icon>上传文件
       </el-button>
       <el-input
-        v-model="searchQuery"
-        placeholder="请输入文件名搜索"
+        v-model="fileType"
+        placeholder="请输入文件类型搜索"
+        style="width: 200px; margin-left: 16px"
+        clearable
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #suffix>
+          <el-icon class="el-input__icon" @click="handleSearch"><Search /></el-icon>
+        </template>
+      </el-input>
+      <el-input
+        v-model="materialType"
+        placeholder="请输入资料类型搜索"
         style="width: 200px; margin-left: 16px"
         clearable
         @clear="handleSearch"
@@ -24,26 +36,31 @@
       style="width: 100%; margin-top: 20px"
       border
     >
-      <el-table-column prop="fileName" label="文件名" min-width="200" />
-      <el-table-column prop="fileSize" label="大小" width="120">
+      <el-table-column prop="name" label="文件名" min-width="200" />
+      <el-table-column prop="memorySize" label="大小" width="120">
         <template #default="{ row }">
-          {{ formatFileSize(row.fileSize) }}
+          {{ formatFileSize(row.memorySize) }}
         </template>
       </el-table-column>
-      <el-table-column prop="uploadTime" label="上传时间" width="180" />
-      <el-table-column prop="uploader" label="上传者" width="120" />
+      <el-table-column prop="updateTime" label="上传时间" width="180" >
+        <template #default="{ row }">
+          {{ new Date(row.updateTime).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="materialType" label="资料类型" width="120">
+        <template #default="{ row }">
+          {{ studyTypeMap[row.materialType] }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="fileType" label="文件类型" width="120">
+        <template #default="{ row }">
+          {{ fileTypeMap[row.fileType] }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
-          <el-button
-            type="primary"
-            link
-            @click="handleDownload(row)"
-          >下载</el-button>
-          <el-button
-            type="danger"
-            link
-            @click="handleDelete(row)"
-          >删除</el-button>
+          <el-button type="primary" size="small" @click="handleDownload(row)">下载</el-button>
+          <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -94,25 +111,29 @@ const loading = ref(false)
 const fileList = ref([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(10)
-const searchQuery = ref('')
+const pageSize = ref(15)
+const fileType = ref('')
+const materialType = ref('')
 const uploadDialogVisible = ref(false)
-
+const fileTypeMap = {1: 'PDF', 2: 'DOCX', 3: 'PPTX'};
+const studyTypeMap = {1: '课件', 2: '真题', 3: '资料', 4: '笔记'};
 const uploadHeaders = {
   Authorization: `Bearer ${store.getters.token}`
 }
+
 
 // 获取文件列表
 const getFileList = async () => {
   loading.value = true
   try {
-    const res = await fileApi.list({
+    const res = await fileApi.query({
       page: currentPage.value,
-      pageSize: pageSize.value,
-      keyword: searchQuery.value
+      size: pageSize.value,
+      fileType: fileType.value,
+      materialType: materialType.value
     })
-    fileList.value = res.data.list
-    total.value = res.data.total
+    fileList.value = res.data.data.list
+    total.value = res.data.data.total
   } catch (error) {
     console.error('获取文件列表失败：', error)
   } finally {
@@ -135,8 +156,12 @@ const formatFileSize = (size) => {
 
 // 处理搜索
 const handleSearch = () => {
-  currentPage.value = 1
-  getFileList()
+  currentPage.value = 1;
+  fileType.value = Object.keys(fileTypeMap).find(key => fileTypeMap[key] === fileType.value) || '';
+  materialType.value = Object.keys(studyTypeMap).find(key => studyTypeMap[key] === materialType.value) || '';
+  getFileList();
+  fileType.value = '';
+  materialType.value = '';
 }
 
 // 处理页码变化
@@ -199,7 +224,9 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      await fileApi.delete(row.id)
+      const formData = new FormData() 
+      formData.append('id', row.id)
+      await fileApi.delete(formData)
       ElMessage.success('删除成功')
       getFileList()
     } catch (error) {
@@ -233,3 +260,4 @@ onMounted(() => {
   text-align: center;
 }
 </style>
+

@@ -4,24 +4,16 @@ import request from '../utils/request'
 // 用户相关接口
 export const userApi = {
   login: (data) => request({
-    url: '/user/login',
+    url: '/userbl/user/login',
     method: 'post',
     data
-  }),
-  logout: () => request({
-    url: '/user/logout',
-    method: 'post'
-  }),
-  getUserInfo: () => request({
-    url: '/user/info',
-    method: 'get'
   })
 }
 
 // 文件管理接口
 export const fileApi = {
   upload: (data) => request({
-    url: '/file/upload',
+    url: '/univbl/study/upload',
     method: 'post',
     data,
     headers: {
@@ -29,18 +21,22 @@ export const fileApi = {
     }
   }),
   download: (id) => request({
-    url: `/file/download/${id}`,
+    url: `/univbl/study/download/${id}`,
     method: 'get',
     responseType: 'blob'
   }),
-  list: (params) => request({
-    url: '/file/list',
-    method: 'get',
-    params
+  query: (data) => request({
+    url: '/univbl/study/query',
+    method: 'post',
+    data
   }),
-  delete: (id) => request({
-    url: `/file/${id}`,
-    method: 'delete'
+  delete: (data) => request({
+    url: `/univbl/study/delete`,
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
   })
 }
 
@@ -106,22 +102,22 @@ export const majorApi = {
 // 新闻管理接口
 export const newsApi = {
   list: (data) => request({
-    url: '/newsvl/news/list',
+    url: '/newsbl/news/list',
     method: 'post',
     data
   }),
   create: (data) => request({
-    url: '/newsvl/news',
+    url: '/newsbl/news/create',
     method: 'post',
     data
   }),
   update: (data) => request({
-    url: `/newsvl/news/${id}`,
+    url: `/newsbl/news/update`,
     method: 'post',
     data
   }),
   delete: (data) => request({
-    url: `/newsvl/news/${id}`,
+    url: `/newsbl/news/delete`,
     method: 'post',
     headers: {
       'Content-Type': 'multipart/form-data'
@@ -129,7 +125,7 @@ export const newsApi = {
     data
   }),
   detail: (data) => request({
-    url: `/newsvl/news/${id}`,
+    url: `/newsbl/news/detail`,
     method: 'post',
     headers: {
       'Content-Type': 'multipart/form-data'

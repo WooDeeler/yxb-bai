@@ -24,6 +24,30 @@ export default defineConfig({
             proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
           })
         }
+      },
+      '/newsbl': {
+        target: 'http://119.29.191.232:8791',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/newsbl/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            proxyRes.headers['Access-Control-Allow-Origin'] = '*'
+            proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+          })
+        }
+      },
+      '/userbl': {
+        target: 'http://119.29.191.232:8891',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/userbl/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            proxyRes.headers['Access-Control-Allow-Origin'] = '*'
+            proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+          })
+        }
       }
     }
   }

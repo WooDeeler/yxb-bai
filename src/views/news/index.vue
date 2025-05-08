@@ -4,18 +4,6 @@
       <el-button type="primary" @click="handleAdd">
         <el-icon><Plus /></el-icon>新增新闻
       </el-button>
-      <el-input
-        v-model="searchQuery"
-        placeholder="请输入新闻标题搜索"
-        style="width: 200px; margin-left: 16px"
-        clearable
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      >
-        <template #suffix>
-          <el-icon class="el-input__icon" @click="handleSearch"><Search /></el-icon>
-        </template>
-      </el-input>
     </div>
 
     <el-table
@@ -24,33 +12,45 @@
       style="width: 100%; margin-top: 20px"
       border
     >
-      <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="category" label="分类" width="120">
+      <el-table-column prop="title" label="标题" width="240" />
+      <el-table-column prop="theme" label="主题" width="120" />
+      <el-table-column prop="content" label="内容" min-width="200">
         <template #default="{ row }">
-          <el-tag>{{ row.category }}</el-tag>
+          <div v-if="!row.showFullContent">
+            {{ row.content.slice(0, 20) }}...
+            <el-button type="text" @click="row.showFullContent = true">展开</el-button>
+          </div>
+          <div v-else>
+            {{ row.content }}
+            <el-button type="text" @click="row.showFullContent = false">收起</el-button>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="author" label="作者" width="120" />
-      <el-table-column prop="publishTime" label="发布时间" width="180" />
-      <el-table-column prop="status" label="状态" width="100">
+      <el-table-column label="图片" width="80">
         <template #default="{ row }">
-          <el-tag :type="row.status === '已发布' ? 'success' : 'info'">{{ row.status }}</el-tag>
+          <el-image
+            :src="row.images"
+            :preview-src-list="[row.images]"
+            fit="contain"
+            style="width: 50px; height: 50px"
+          />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column prop="publishSource" label="来源" width="120" />
+      <el-table-column prop="publishTime" label="发布时间" width="110">
         <template #default="{ row }">
-          <el-button
-            type="primary"
-            link
-            @click="handleEdit(row)"
-          >编辑</el-button>
-          <el-button
-            type="danger"
-            link
-            @click="handleDelete(row)"
-          >删除</el-button>
+          {{ new Date(row.publishTime).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) }}
         </template>
       </el-table-column>
+      <el-table-column prop="tags" label="标签" width="120" />
+      <el-table-column prop="relatedUniversity" label="关联院校" width="120" />
+      <el-table-column label="操作" width="160" fixed="right">
+        <template #default="{ row }">
+          <el-button type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+          <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+        </template>
+      </el-table-column>
+      
     </el-table>
 
     <el-pagination
@@ -77,15 +77,11 @@
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入新闻标题" />
         </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-select v-model="form.category" placeholder="请选择分类" style="width: 100%">
-            <el-option label="通知公告" value="通知公告" />
-            <el-option label="新闻动态" value="新闻动态" />
-            <el-option label="政策法规" value="政策法规" />
-          </el-select>
+        <el-form-item label="主题" prop="theme">
+          <el-input v-model="form.theme" placeholder="请输入新闻主题" />
         </el-form-item>
-        <el-form-item label="作者" prop="author">
-          <el-input v-model="form.author" placeholder="请输入作者" />
+        <el-form-item label="来源" prop="publishSource">
+          <el-input v-model="form.publishSource" placeholder="请输入作者" />
         </el-form-item>
         <el-form-item label="内容" prop="content">
           <el-input
@@ -95,11 +91,32 @@
             placeholder="请输入新闻内容"
           />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio label="已发布">已发布</el-radio>
-            <el-radio label="草稿">草稿</el-radio>
-          </el-radio-group>
+        <el-form-item label="标签" prop="tags">
+          <el-input v-model="form.tags" placeholder="请输入标签" />
+        </el-form-item>
+        <el-form-item label="相关大学" prop="relatedUniversity">
+          <el-input v-model="form.relatedUniversity" placeholder="请输入相关大学" />
+        </el-form-item>
+        <el-form-item label="图片" prop="images">
+          <el-upload
+            class="news-image-upload"
+            action="/api/upload"
+            :show-file-list="true"
+            :on-success="handleUploadSuccess"
+            :before-upload="beforeUpload"
+            :limit="1"
+          >
+            <el-button type="primary">点击上传</el-button>
+            <template #tip>
+              <div class="el-upload__tip">只能上传jpg/png文件，且不超过2MB</div>
+            </template>
+          </el-upload>
+          <el-image
+            v-if="form.images"
+            :src="form.images"
+            class="preview-image"
+            style="width: 100px; height: 100px; margin-top: 10px"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -129,19 +146,25 @@ const dialogType = ref('add')
 const formRef = ref(null)
 
 const form = reactive({
+  id: '',
+  theme: '',
   title: '',
-  category: '',
-  author: '',
+  images: '',
   content: '',
-  status: '草稿'
+  tags: '',
+  publishSource: '',
+  publishTime: '',
+  relatedUniversity: ''
 })
 
 const rules = {
   title: [{ required: true, message: '请输入新闻标题', trigger: 'blur' }],
-  category: [{ required: true, message: '请选择分类', trigger: 'change' }],
-  author: [{ required: true, message: '请输入作者', trigger: 'blur' }],
+  theme: [{ required: true, message: '请输入新闻主题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入新闻内容', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
+  publishSource: [{ required: true, message: '请输入来源', trigger: 'blur' }],
+  images: [{ required: false, message: '请上传图片', trigger: 'change' }],
+  tags: [{ required: true, message: '请选择状态', trigger: 'change' }],
+  relatedUniversity: [{ required: false, message: '请输入相关大学', trigger: 'blur' }],
 }
 
 // 获取新闻列表
@@ -150,11 +173,10 @@ const getNewsList = async () => {
   try {
     const res = await newsApi.list({
       page: currentPage.value,
-      pageSize: pageSize.value,
-      keyword: searchQuery.value
+      pageSize: pageSize.value
     })
-    newsList.value = res.data.list
-    total.value = res.data.total
+    newsList.value = res.data.data.list.map(item => ({ ...item, showFullContent: false }))
+    total.value = res.data.data.total
   } catch (error) {
     console.error('获取新闻列表失败：', error)
   } finally {
@@ -177,10 +199,12 @@ const handlePageChange = (page) => {
 // 重置表单
 const resetForm = () => {
   form.title = ''
-  form.category = ''
-  form.author = ''
+  form.theme = ''
   form.content = ''
-  form.status = '草稿'
+  form.publishSource = ''
+  form.tags = ''
+  form.relatedUniversity = ''
+  form.images = ''
   formRef.value?.resetFields()
 }
 
@@ -207,7 +231,7 @@ const handleSubmit = () => {
           await newsApi.create(form)
           ElMessage.success('新增成功')
         } else {
-          await newsApi.update(form.id, form)
+          await newsApi.update(form)
           ElMessage.success('编辑成功')
         }
         dialogVisible.value = false
@@ -229,21 +253,45 @@ const handleDelete = (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     }
-  ).then(async () => {
+  ).then(() => {
     try {
-      await newsApi.delete(row.id)
+      const formData = new FormData();
+      formData.append('id', row.id);
+      newsApi.delete(formData)
       ElMessage.success('删除成功')
       getNewsList()
     } catch (error) {
+      console.log(error)
       ElMessage.error('删除失败')
     }
   })
+}
+
+const handleUploadSuccess = (response) => {
+  form.images = response.data.url
+  ElMessage.success('上传成功')
+}
+
+const beforeUpload = (file) => {
+  const isJPGOrPNG = file.type === 'image/jpeg' || file.type === 'image/png'
+  const isLt2M = file.size / 1024 / 1024 < 2
+
+  if (!isJPGOrPNG) {
+    ElMessage.error('只能上传JPG/PNG格式的图片！')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('图片大小不能超过2MB！')
+    return false
+  }
+  return true
 }
 
 onMounted(() => {
   getNewsList()
 })
 </script>
+
 
 <style scoped>
 .news-container {
@@ -259,5 +307,15 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+.news-image-upload {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-image {
+  object-fit: cover;
+  border-radius: 4px;
 }
 </style>
