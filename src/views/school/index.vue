@@ -65,20 +65,10 @@
       <el-table-column prop="introduction" label="简介" min-width="200" />
       <el-table-column prop="majorInfo" label="专业信息" width="200" />
       <el-table-column prop="tags" label="标签" width="180" />
-      <el-table-column label="操作" width="100" fixed="right">
+      <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
-          <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
-            <el-button
-              type="primary"
-              size="small"
-              @click="handleEdit(row)"
-            >编辑</el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleDelete(row)"
-            >删除</el-button>
-          </div>
+          <el-button type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+          <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
