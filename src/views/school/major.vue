@@ -23,7 +23,11 @@
     >
       <el-table-column prop="majorName" label="专业名称" width="250" />
       <el-table-column prop="universityName" label="所属院校" width="250" />
-      <el-table-column prop="type" label="专业类型" width="200" />
+      <el-table-column prop="type" label="专业类型" width="200">
+        <template #default="{ row }">
+          {{ majorTypeMap[row.type] }}
+        </template>
+      </el-table-column>
       <el-table-column prop="years" label="年份" width="150" />
       <el-table-column prop="score" label="分数线" min-width="100" show-overflow-tooltip />
       <el-table-column prop="countryScore" label="国家线" width="150" show-overflow-tooltip />
@@ -62,7 +66,9 @@
           <el-input v-model="majorForm.majorName" placeholder="请输入专业名称" />
         </el-form-item>
         <el-form-item label="专业类型" prop="type">
-          <el-input v-model="majorForm.type" placeholder="请输入专业类型" />
+          <el-select v-model="majorForm.type" placeholder="请选择专业类型">
+            <el-option v-for="(label, value) in majorTypeMap" :key="value" :label="label" :value="value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="年份" prop="years">
           <el-input v-model="majorForm.years" placeholder="请输入年份" />
@@ -118,6 +124,14 @@ const majorForm = reactive({
   score: '',
   countryScore: ''
 })
+
+const majorTypeMap = {
+  1: '工科',
+  2: '理科',
+  3: '文史类',
+  4: '艺术类',
+  5: '体育类'  
+}
 
 // 表单校验规则
 const majorRules = {
@@ -266,3 +280,7 @@ onMounted(() => {
   text-align: right;
 }
 </style>
+
+
+
+
