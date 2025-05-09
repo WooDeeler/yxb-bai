@@ -53,25 +53,19 @@
           </template>
           <div class="system-info-content">
             <el-row :gutter="40">
-              <el-col :span="6">
-                <div class="info-item">
-                  <div class="info-label">系统运行时间</div>
-                  <div class="info-value">{{ systemUptime }}</div>
-                </div>
-              </el-col>
-              <el-col :span="6">
+              <el-col :span="8">
                 <div class="info-item">
                   <div class="info-label">CPU使用率</div>
                   <div class="info-value">{{ cpuUsage }}%</div>
                 </div>
               </el-col>
-              <el-col :span="6">
+              <el-col :span="8">
                 <div class="info-item">
                   <div class="info-label">内存使用率</div>
                   <div class="info-value">{{ memoryUsage }}%</div>
                 </div>
               </el-col>
-              <el-col :span="6">
+              <el-col :span="8">
                 <div class="info-item">
                   <div class="info-label">系统时间</div>
                   <div class="info-value">{{ currentTime }}</div>
@@ -115,8 +109,8 @@ const updateSystemUptime = () => {
 // 更新系统信息
 const updateSystemInfo = () => {
   // 模拟CPU和内存使用率
-  cpuUsage.value = Math.floor(Math.random() * 30 + 40) // 40-70%之间
-  memoryUsage.value = Math.floor(Math.random() * 20 + 50) // 50-70%之间
+  cpuUsage.value = Math.floor(Math.random() * 30 + 10) // 40-70%之间
+  memoryUsage.value = Math.floor(Math.random() * 20 + 25) // 50-70%之间
   currentTime.value = new Date().toLocaleString()
   updateSystemUptime()
 }
