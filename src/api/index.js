@@ -13,16 +13,17 @@ export const userApi = {
 // 文件管理接口
 export const fileApi = {
   upload: (data) => request({
-    url: '/univbl/study/upload',
+    url: '/univbl/oss/upload',
     method: 'post',
     data,
     headers: {
       'Content-Type': 'multipart/form-data'
     }
   }),
-  download: (id) => request({
-    url: `/univbl/study/download/${id}`,
+  download: (fileName) => request({
+    url: '/univbl/oss/download',
     method: 'get',
+    params: { fileName },
     responseType: 'blob'
   }),
   query: (data) => request({
@@ -36,6 +37,11 @@ export const fileApi = {
     headers: {
       'Content-Type': 'multipart/form-data'
     },
+    data
+  }),
+  add: (data) => request({
+    url: `/univbl/study/add`,
+    method: 'post',
     data
   })
 }

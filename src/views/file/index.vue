@@ -80,26 +80,59 @@
       title="上传文件"
       width="400px"
     >
-      <el-upload
-        class="upload-demo"
-        drag
-        action="/api/file/upload"
-        :headers="uploadHeaders"
-        :on-success="handleUploadSuccess"
-        :on-error="handleUploadError"
-        :before-upload="beforeUpload"
+      <el-form
+        ref="uploadFormRef"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
       >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-        <div class="el-upload__text">
-          将文件拖到此处，或<em>点击上传</em>
-        </div>
-      </el-upload>
+        <el-form-item label="文件类型" prop="fileType">
+          <el-select v-model="form.fileType" placeholder="请选择文件类型">
+            <el-option
+              v-for="(value, key) in fileTypeMap"
+              :key="key"
+              :label="value"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="资料类型" prop="materialType">
+          <el-select v-model="form.materialType" placeholder="请选择资料类型">
+            <el-option
+              v-for="(value, key) in studyTypeMap"
+              :key="key"
+              :label="value"
+              :value="key"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="文件" prop="file">
+          <el-upload
+            class="upload-demo"
+            drag
+            :auto-upload="false"
+            :on-change="handleFileChange"
+            :before-upload="beforeUpload"
+          >
+            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <div class="el-upload__text">
+              将文件拖到此处，或<em>点击上传</em>
+            </div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="uploadDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitUpload">确认</el-button>
+        </span>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Upload, UploadFilled } from '@element-plus/icons-vue'
@@ -115,10 +148,27 @@ const pageSize = ref(15)
 const fileType = ref('')
 const materialType = ref('')
 const uploadDialogVisible = ref(false)
-const fileTypeMap = {1: 'PDF', 2: 'DOCX', 3: 'PPTX'};
-const studyTypeMap = {1: '课件', 2: '真题', 3: '资料', 4: '笔记'};
+const fileTypeMap = {1: '课件', 2: '真题', 3: '资料', 4: '笔记'};
+const studyTypeMap = {1: '高数', 2: '英语', 3: '政治', 4: '专业课'};
+
 const uploadHeaders = {
   Authorization: `Bearer ${store.getters.token}`
+}
+
+const uploadFormRef = ref()
+const form = reactive({
+  id: '',
+  name: '',
+  memorySize: '',
+  materialType: '',
+  fileType: '',
+  file: null
+})
+
+const rules = {
+  materialType: [{ required: true, message: '请选择资料类型', trigger: 'change' }],
+  fileType: [{ required: true, message: '请选择文件类型', trigger: 'change' }],
+  file: [{ required: false, message: '请上传文件', trigger: 'change' }]
 }
 
 
@@ -185,26 +235,32 @@ const beforeUpload = (file) => {
   return true
 }
 
-// 处理上传成功
-const handleUploadSuccess = () => {
-  ElMessage.success('上传成功')
-  uploadDialogVisible.value = false
-  getFileList()
-}
-
-// 处理上传失败
-const handleUploadError = () => {
-  ElMessage.error('上传失败')
+// 处理文件变化
+const handleFileChange = async (file) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', file.raw)
+    await fileApi.upload(formData)
+    
+    // 更新表单中的文件信息
+    form.name = file.raw.name
+    form.memorySize = file.raw.size
+    
+    ElMessage.success('上传成功')
+  } catch (error) {
+    console.error('上传失败：', error)
+    ElMessage.error('上传失败')
+  }
 }
 
 // 处理下载
 const handleDownload = async (row) => {
   try {
-    const res = await fileApi.download(row.id)
+    const res = await fileApi.download(row.name)
     const blob = new Blob([res.data])
     const link = document.createElement('a')
     link.href = window.URL.createObjectURL(blob)
-    link.download = row.fileName
+    link.download = row.name
     link.click()
     window.URL.revokeObjectURL(link.href)
   } catch (error) {
@@ -233,6 +289,27 @@ const handleDelete = (row) => {
       ElMessage.error('删除失败')
     }
   })
+}
+
+// 提交上传
+const submitUpload = async () => {
+  try {
+    await uploadFormRef.value.validate()
+  
+    // 提交表单数据
+    await fileApi.add(form)
+    
+    ElMessage.success('上传成功')
+    uploadDialogVisible.value = false
+    getFileList()
+    
+    // 重置表单
+    uploadFormRef.value.resetFields()
+    form.file = null
+  } catch (error) {
+    console.error('上传失败：', error)
+    ElMessage.error('上传失败')
+  }
 }
 
 onMounted(() => {

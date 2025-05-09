@@ -100,9 +100,8 @@
         <el-form-item label="图片" prop="images">
           <el-upload
             class="news-image-upload"
-            action="/api/upload"
             :show-file-list="true"
-            :on-success="handleUploadSuccess"
+            :http-request="handleCustomUpload"
             :before-upload="beforeUpload"
             :limit="1"
           >
@@ -133,7 +132,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
-import { newsApi } from '@/api'
+import { newsApi, fileApi } from '@/api'
 
 const loading = ref(false)
 const newsList = ref([])
@@ -267,9 +266,18 @@ const handleDelete = (row) => {
   })
 }
 
-const handleUploadSuccess = (response) => {
-  form.images = response.data.url
-  ElMessage.success('上传成功')
+const handleCustomUpload = async (options) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', options.file)
+    const res = await fileApi.upload(formData)
+    form.images = res.data.data
+    ElMessage.success('上传成功')
+    options.onSuccess()
+  } catch (error) {
+    ElMessage.error('上传失败')
+    options.onError()
+  }
 }
 
 const beforeUpload = (file) => {
