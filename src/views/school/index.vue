@@ -99,7 +99,7 @@
             class="avatar-uploader"
             action="/api/upload"
             :show-file-list="false"
-            :on-success="handleBadgeSuccess"
+            :http-request="handleBadgeUpload"
             :before-upload="beforeBadgeUpload"
           >
             <img v-if="form.badge" :src="form.badge" class="avatar" />
@@ -154,7 +154,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
-import { schoolApi } from '@/api'
+import { schoolApi,fileApi } from '@/api'
 
 const loading = ref(false)
 const schoolList = ref([])
@@ -189,9 +189,19 @@ const rules = {
   tags: [{ required: true, message: '请输入标签', trigger: 'blur' }]
 }
 
-// 处理校徽上传成功
-const handleBadgeSuccess = (res) => {
-  form.badge = res.data.url
+
+const handleBadgeUpload = async (options) => {
+  try {
+    const formData = new FormData()
+    formData.append('file', options.file)
+    const res = await fileApi.upload(formData)
+    form.badge = res.data.data
+    ElMessage.success('上传成功')
+    options.onSuccess()
+  } catch (error) {
+    ElMessage.error('上传失败')
+    options.onError()
+  }
 }
 
 // 校徽上传前的验证
@@ -237,7 +247,7 @@ async function condQueryUniv() {
   try {
     loading.value = true
     const res = await schoolApi.condQuery({
-      name: searchName.value,
+      univName: searchName.value,
       type: searchType.value,
       city: searchCity.value,
       page: currentPage.value,

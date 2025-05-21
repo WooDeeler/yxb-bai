@@ -6,7 +6,7 @@ import store from '../store'
 const service = axios.create({
   // baseURL: 'http://119.29.191.232',
   // baseURL: '/api',
-  timeout: 10000,
+  timeout: 30000,
   responseType: 'json'
 })
 
