@@ -93,7 +93,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { majorApi } from '@/api'
+import { majorApi, schoolApi } from '@/api'
 
 
 // 查询参数
@@ -114,6 +114,8 @@ const schoolOptions = ref([])
 const dialogVisible = ref(false)
 const dialogTitle = ref('add')
 const majorFormRef = ref(null)
+const univName = ref('')
+const univId = ref(0)
 const majorForm = reactive({
   id: '',
   universityId: '',
@@ -125,12 +127,13 @@ const majorForm = reactive({
   countryScore: ''
 })
 
+
 const majorTypeMap = {
   1: '工科',
   2: '理科',
-  3: '文史类',
-  4: '艺术类',
-  5: '体育类'  
+  3: '文史',
+  4: '艺术',
+  5: '体育'  
 }
 
 // 表单校验规则
@@ -153,6 +156,15 @@ const getMajorList = async () => {
     })
     majorList.value = res.data.data.list
     total.value = res.data.data.total
+    const univ = await schoolApi.condQuery({
+      page: 1,
+      size: 1,
+      univName: queryParams.universityName
+    })
+    univName.value = queryParams.universityName
+    if (univ.data.data.list !== null && univ.data.data.list.length > 0) {
+        univId.value = univ.data.data.list[0].id
+    }
   } catch (error) {
     console.error('获取院校列表失败:', error)
   } finally {
@@ -226,11 +238,9 @@ const submitForm = () => {
     majorFormRef.value?.validate(valid => {
     if (valid) {
       try {
-        if (dialogTitle.value === 'add' && majorList.value.length > 0) {
-          // 从majorList中获取第一条记录的院校信息
-          const firstMajor = majorList.value[0]
-          majorForm.universityId = firstMajor.universityId
-          majorForm.universityName = firstMajor.universityName
+        if (dialogTitle.value === 'add') {
+          majorForm.universityId = univId.value
+          majorForm.universityName = univName.value
           majorApi.create(majorForm)
           ElMessage.success('新增成功')
         } else {

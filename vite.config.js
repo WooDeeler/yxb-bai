@@ -14,8 +14,8 @@ export default defineConfig({
     port: 3100,
     proxy: {
       '/univbl': {
-        // target: 'http://119.29.191.232:8691',
-        target: 'http://127.0.0.1:8691',
+        target: 'http://119.29.191.232:8691',
+        // target: 'http://127.0.0.1:8691',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/univbl/, ''),
         configure: (proxy, options) => {
